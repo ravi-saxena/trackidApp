@@ -1,0 +1,195 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!--PROJECT NAME-->
+    <title>Trackid</title>
+    <!--META SECTION-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <!--STYLES SECTION -->
+    <script type="text/javascript" charset="utf-8" src="js/cordova-1.7.0.js"></script>
+    <!--FONTS SECTION -->
+    <link href="css/jquery.mobile-1.0.1.css" rel="stylesheet" type="text/css" />
+    <link href="css/lightOrange.css" rel="stylesheet" type="text/css" />
+    <link href="css/Map.css" rel="stylesheet" type="text/css" />
+    <!--Script Section-->
+    <script src="js/jQuery.js" charset="utf-8" type="text/javascript"></script>
+    <script src="js/jquery.mobile-1.0.1.min.js" charset="utf-8" type="text/javascript"></script>
+    <script src="js/json2.js" type="text/javascript"></script>
+    <script src="js/cookies.js" type="text/javascript"></script>
+    <script src="js/utility.js" type="text/javascript"></script>
+    <script type="text/javascript" charset="utf-8">
+        var gUserObj = null;
+        var gDomian =  'https://www.trackidonline.com/LoginService.asmx/';
+        //'/Trackid/LoginService.asmx/';
+        var Option = '';
+        $(function () {
+            $.support.cors = true;
+            $('#Loading').show();
+            setTimeout(function () {
+                $('#Loading').hide();
+            }, 1000);
+            // $.mobile.showPageLoadingMsg("b", "This is only a test", true);
+
+
+
+        });
+
+        function isValid() {
+            if ($('#txtEmail').val() == '') {
+                alert("Enter Email");
+                $('#txtEmail').focus();
+                return false;
+            }
+            if ($('#txtpassword').val() == '') {
+                $('#txtpassword').focus();
+                alert("Enter Password");
+                return false;
+            }
+            return true;
+        }
+        function btnLogin_Click() {
+
+            var gloginObj = new Object();
+            gloginObj._userName = $('#txtEmail').val();
+            gloginObj._passWord = $('#txtpassword').val();
+            gloginObj.option = Option;
+            var jsonStr = JSON.stringify(gloginObj);
+            $.ajax({
+                url: gDomian + 'Login',
+                data: jsonStr,
+                type: "POST",
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    Result(data);
+                },
+                error: function (request, status, error) {
+                    alert(request.responseText);
+                    alert(error);
+                }
+            });
+        }
+        function Result(data) {
+            Option = '';
+            alert(data.d);
+            if (data.d == 'false,false') {
+                $('#error').show();
+            }
+            else {
+                _data = data.d;
+                var _a = new Array();
+                _a = _data.split(",");
+                var _userID = _a[0];
+                var _name = _a[1];
+                
+                if (_name == "loggedin") {
+                    var Cresult = confirm("'Your account already login at some other location.' Do you want close that session");
+
+                    if (Cresult) {
+                        Option = "LOGIN";
+                        btnLogin_Click();
+                    }
+                }
+                else {
+                    gUserObj = new Object();
+                    gUserObj.username = _name;
+                    gUserObj.userid = _userID;
+                    var gUserObjStr = JSON.stringify(gUserObj);
+                    window.localStorage.setItem("guserObj", gUserObjStr);
+                    utility.Redirect('mSchedule.html');
+                }
+            }
+        }
+        //Wait for Cordova to load
+        document.addEventListener("deviceready", onDeviceReady, false);
+        //Cordova is ready now
+        function onDeviceReady() {
+
+        }
+        function onError(error) {
+            alert('code: ' + error.code + '\n' +
+             'message: ' + error.message + '\n');
+        }
+        $("#mainPage").live('pageshow', function (evt) {
+            //$('.ui-loader').css('display', 'block');
+        });
+    </script>
+</head>
+<body>
+    <section id="mainPage" data-role="page"> 
+    <ul data-role="listview">
+<li data-role="list-divider" role="heading" >Trackidonline.com</li></ul>
+  <header data-role="header" class="ui-header ui-bar-a" role="banner">
+                  <div align="center"><img src="images/logo.png" /></div> 
+              <!--  <nav class="ui-grid-c">
+                    <div class="ui-block-a"><a class="navSelected ui-link" href="#">Home</a></div>
+                    <div class="ui-block-b"><a href="#" class="ui-link">Portfolio</a></div>
+                    <div class="ui-block-c"><a href="#" class="ui-link">Blog</a></div>
+                    <div class="ui-block-d"><a href="#" class="ui-link">Contact</a></div>
+                </nav>-->
+                <hr class="divider">
+            </header>
+ <div data-role="content" >
+<ul id="ulFormHeader" data-role="listview">
+<li style="text-align:justify;" data-role="list-divider" role="heading" >Login</li>
+</ul>
+
+<div data-role="fieldcontain">
+                    <fieldset data-role="controlgroup" data-mini="true">
+                        <label class="myclass"  for="txtEmail">
+                            User name
+                        </label>
+                        <input id="txtEmail"   placeholder="Enter your cell number" value="" type="text" />
+                    </fieldset>
+             
+                    <fieldset data-role="controlgroup" data-mini="true">
+                        <label for="txtpassword">
+                            Password
+                        </label>
+                        <input id="txtpassword" placeholder="Enter your password" value="" type="password" />
+                    </fieldset>
+ <input type="submit" data-inline="true" data-theme="c" data-icon="back" data-iconpos="right" value="Cancel" data-mini="true" />				
+				<input id="btnLogin" onclick="btnLogin_Click();" type="submit" data-theme="c" data-inline="true" data-icon="check" data-iconpos="right" value="Login" data-mini="true" />
+               
+                </div>
+
+</div>
+
+ <footer data-role="footer" data-theme="a" data-position="inline" class="ui-footer ui-bar-a"
+            role="contentinfo">
+            
+                
+            </footer>
+</section>
+    <!--
+   <div  align="center">
+        <img src="images/logo.png" />
+        </div>
+    <div class="toolbar">
+        <h1 id="pageTitle">
+        </h1>
+        <a id="backButton" class="button" href="#"></a>
+
+    </div>
+ 
+    <form id="screen1" title="TrackidOnline" class="panel" name="formname" action="#screen1"
+    method="get" selected="true">
+    <fieldset>
+        <div class="row">
+            <label>
+                Login</label>
+            <input type="text" name="ident" id="txtEmail" placeholder="Your login">
+        </div>
+        <div class="row">
+            <label>
+                Password</label>
+            <input type="password" name="password" id="txtpassword" placeholder="Your password">
+        </div>
+    </fieldset>
+    <a class="whiteButton" onclick="btnLogin_Click();">Login</a>
+    </form>-->
+</body>
+</html>

@@ -1,0 +1,154 @@
+﻿<!DOCTYPE html />
+<html>
+<head>
+    <!--<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!--PROJECT NAME-->
+    <title>Trackid</title>
+    <!--META SECTION-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <!--STYLES SECTION -->
+    <script type="text/javascript" charset="utf-8" src="js/cordova-1.7.0.js"></script>
+    <!--FONTS SECTION -->
+    <link href="css/jquery.mobile-1.0.1.css" rel="stylesheet" type="text/css" />
+    <link href="css/lightOrange.css" rel="stylesheet" type="text/css" />
+    <link href="css/Map.css" rel="stylesheet" type="text/css" />
+    <script src="js/jQuery.js" charset="utf-8" type="text/javascript">
+    </script>
+    <script src="js/jquery.mobile-1.0.1.min.js" charset="utf-8" type="text/javascript">
+    </script>
+    <script src="js/json2.js" type="text/javascript">
+    </script>
+    <script src="js/cookies.js" type="text/javascript">
+    </script>
+    <script src="js/utility.js" type="text/javascript">
+    </script>
+    <script>
+       // var gDomian = '/Trackid/LoginService.asmx/';
+        var gDomian = 'https://www.trackidonline.com/LoginService.asmx/';
+        var gUserObj = null;
+        $('#schedulePage').live('pagechange', function (evt) {
+            // alert('pagechange');
+           
+        });
+        $("#schedulePage").live('pageinit', function (evt) {
+            $('.ui-loader').css('display', 'block');
+        });
+        function Result(data) {
+            $('.ui-loader').css('display', 'block');
+            $('.content-primary ul').empty();
+            var schedule = '';
+            $(data.d).find("Route").each(function () {
+                schedule += '<li data-role="list-divider">Route Name : ' + $(this).find("RouteName").text() + '<span class="ui-li-count">' + $(this).find("AlertTime").text() + '</span></li>';
+                schedule += '<li><a href="#" onclick="ChargeNumber(' + $(this).find("id").text() + ')">';
+                schedule += '<p><strong>School Name :' + $(this).find("SchoolName").text() + '</strong></p>';
+                schedule += '<p><strong>Children Name:' + $(this).find("ChildrenName").text() + '</strong></p>';
+                schedule += '<p>Notification : ' + $(this).find("Notification").text() + '</p>';
+                schedule += '<p>Stop Name : ' + $(this).find("StopName").text() + '</p>';
+                schedule += '<p class="ui-li-aside"><strong>Alert Time:</strong>' + $(this).find("AlertTime").text() + '</p>';
+                schedule += '</a></li>';
+            });
+            $('.content-primary ul').append(schedule);
+            $('ul').listview('refresh');
+            $('.ui-loader').css('display', 'none');
+        }
+        function ChargeNumber(id) {
+            if (gUserObj != null) {
+                gUserObj.chargenumber = id;
+                var gUserObjStr = JSON.stringify(gUserObj);
+                window.localStorage.setItem("guserObj", gUserObjStr);
+                utility.Redirect('Busonmap.html');
+            }
+            else {
+                utility.Redirect('index.html');
+            }
+        }
+        $('#schedulePage').live('pageshow', function () {
+            Init();
+
+        });
+
+        function Init() {
+            var str = window.localStorage.getItem("guserObj");
+            if (str == null || str == undefined || str == "undefined" || str == "[Object] [Object]") {
+                utility.Redirect("index.html");
+            }
+            else {
+                gUserObj = JSON.parse(str);
+                CallBack();
+            }
+
+        }
+        function btn_logout() {
+            if (gUserObj != null) {
+                var _postData = "{userid:" + gUserObj.userid + "}";
+            }
+            var _path = gDomian + 'Logout';
+            $.ajax({
+                url: _path,
+                data: _postData,
+                type: "POST",
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    utility.Redirect("index.html");
+                    window.localStorage.removeItem("guserObj");
+                },
+                error: function (request, status, error) {
+                    alert(request.responseText);
+                    utility.Redirect("index.html");
+                    window.localStorage.removeItem("guserObj");
+
+                }
+            });
+           
+        }
+        function CallBack() {
+            if(gUserObj !=null)
+            var userid = gUserObj.userid;
+            var _postData = "{userid:" + userid + "}";
+            var _path = gDomian + 'Schedules';
+            $.ajax({
+                url: _path,
+                data: _postData,
+                type: "POST",
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    Result(data);
+                },
+                error: function (request, status, error) {
+                    alert(request.responseText);
+                    alert(error);
+                }
+            });
+        
+        }
+    </script>
+</head>
+<body>
+    <section id="schedulePage" data-role="page"> 
+    <ul data-role="listview" >
+<li data-role="list-divider" role="heading" >Trackidonline.com</li></ul>
+  <header data-role="header" class="ui-header ui-bar-a" role="banner">
+                  <div align="center"><img src="images/logo.png" /></div> 
+                <a id="A1" onclick="javascript:btn_logout();" data-role="button" data-icon="lock" data-iconpos="left" data-transition="pop" class="ui-btn-right ui-btn ui-btn-icon-left ui-btn-corner-all ui-shadow ui-btn-up-c" data-theme="c"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">Logout</span><span class="ui-icon ui-icon-lock ui-icon-shadow"></span></span></a>
+                <hr class="divider">
+            </header>
+ <div data-role="content" >
+<ul id="ulFormHeader" data-role="listview">
+<li style="text-align:justify;" data-role="list-divider" role="heading" >Schedules</li>
+</ul>
+<div style="height:30px;"></div>
+<div class="content-primary">
+<ul data-role="listview" data-theme="c" data-divider-theme="c">
+</ul>
+</div><!--/content-primary -->		
+</div>
+ <footer data-role="footer" data-theme="a" data-position="inline" class="ui-footer ui-bar-a"
+            role="contentinfo">
+</footer>
+</section>
+</body>
+</html>
